@@ -1,5 +1,8 @@
-package com.fer.infsus.eizbori.model.enums;
+package com.fer.infsus.eizbori.entity.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Status {
     ONGOING("U tijeku"), FINISHED("Završen");
 
@@ -9,7 +12,4 @@ public enum Status {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
 }

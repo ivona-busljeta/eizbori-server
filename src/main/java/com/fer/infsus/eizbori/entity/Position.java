@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.model;
+package com.fer.infsus.eizbori.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -9,8 +9,8 @@ import org.hibernate.validator.constraints.Length;
 @Getter
 @Setter
 @Entity
-@Table(name = "party")
-public class Party {
+@Table(name = "position")
+public class Position {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

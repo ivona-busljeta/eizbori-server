@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.model;
+package com.fer.infsus.eizbori.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

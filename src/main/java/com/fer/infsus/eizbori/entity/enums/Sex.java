@@ -1,5 +1,8 @@
-package com.fer.infsus.eizbori.model.enums;
+package com.fer.infsus.eizbori.entity.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Sex {
     MALE('M'), FEMALE('Ž');
 
@@ -9,7 +12,4 @@ public enum Sex {
         this.label = label;
     }
 
-    public char getLabel() {
-        return label;
-    }
 }

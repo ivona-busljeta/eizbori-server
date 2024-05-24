@@ -1,6 +1,6 @@
-package com.fer.infsus.eizbori.model;
+package com.fer.infsus.eizbori.entity;
 
-import com.fer.infsus.eizbori.model.enums.Sex;
+import com.fer.infsus.eizbori.entity.enums.Sex;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -47,4 +47,12 @@ public class Person {
     @NotNull
     @Enumerated(EnumType.STRING)
     private Sex sex;
+
+    public Person() {
+
+    }
+
+    public Person(long id) {
+        this.id = id;
+    }
 }

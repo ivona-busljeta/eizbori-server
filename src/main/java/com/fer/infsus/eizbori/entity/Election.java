@@ -1,6 +1,6 @@
-package com.fer.infsus.eizbori.model;
+package com.fer.infsus.eizbori.entity;
 
-import com.fer.infsus.eizbori.model.enums.Status;
+import com.fer.infsus.eizbori.entity.enums.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
