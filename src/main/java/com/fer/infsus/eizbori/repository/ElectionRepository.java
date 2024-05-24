@@ -1,6 +1,6 @@
 package com.fer.infsus.eizbori.repository;
 
-import com.fer.infsus.eizbori.model.Election;
+import com.fer.infsus.eizbori.entity.Election;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
