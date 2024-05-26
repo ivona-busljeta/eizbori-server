@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.create;
 
 import com.fer.infsus.eizbori.entity.Person;
 import com.fer.infsus.eizbori.entity.enums.Sex;
@@ -50,7 +50,7 @@ public class AddPersonDTO {
             person.setAddress(address);
             person.setPid(pid);
             person.setNationality(nationality);
-            person.setSex(Sex.valueOf(sex));
+            person.setSex(Sex.fromLabel(sex));
             return person;
         } catch (Exception e) {
             throw new InvalidObjectException("person");

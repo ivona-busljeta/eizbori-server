@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.read;
 
 import com.fer.infsus.eizbori.entity.Person;
 import lombok.Getter;
@@ -26,6 +26,6 @@ public class PersonDTO {
         this.address = person.getAddress();
         this.pid = person.getPid();
         this.nationality = person.getNationality();
-        this.sex = person.getSex().toString();
+        this.sex = person.getSex().getLabel();
     }
 }

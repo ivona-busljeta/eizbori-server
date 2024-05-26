@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.read;
 
 import com.fer.infsus.eizbori.entity.Election;
 import lombok.Getter;
@@ -22,6 +22,6 @@ public class ElectionDTO {
        this.year = election.getYear();
        this.eventDate = formatter.format(election.getEventDate());
        this.deadline = formatter.format(election.getDeadline());
-       this.status = election.getStatus().toString();
+       this.status = election.getStatus().getLabel();
    }
 }

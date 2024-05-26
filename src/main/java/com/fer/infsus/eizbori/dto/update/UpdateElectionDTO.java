@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.update;
 
 import com.fer.infsus.eizbori.entity.enums.Status;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +15,6 @@ public class UpdateElectionDTO {
     private String status;
 
     public Status getStatus() {
-        return Status.valueOf(status);
+        return Status.fromLabel(status);
     }
 }

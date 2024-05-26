@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.create;
 
 import com.fer.infsus.eizbori.entity.enums.Status;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +36,6 @@ public class AddElectionDTO {
     }
 
     public Status getStatus() {
-        return Status.valueOf(status);
+        return Status.fromLabel(status);
     }
 }

@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.create;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

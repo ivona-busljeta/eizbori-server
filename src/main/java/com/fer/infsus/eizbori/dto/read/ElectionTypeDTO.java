@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.read;
 
 import com.fer.infsus.eizbori.entity.ElectionType;
 import lombok.Getter;

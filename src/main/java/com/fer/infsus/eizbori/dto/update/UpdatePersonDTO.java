@@ -1,4 +1,4 @@
-package com.fer.infsus.eizbori.dto;
+package com.fer.infsus.eizbori.dto.update;
 
 import com.fer.infsus.eizbori.entity.Person;
 import jakarta.validation.constraints.NotNull;
