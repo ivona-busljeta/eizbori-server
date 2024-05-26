@@ -6,20 +6,16 @@ CREATE TABLE election_type (
     name        VARCHAR(200)    NOT NULL
 );
 
-CREATE TYPE status AS ENUM ('U tijeku', 'Završen');
-
 CREATE TABLE election (
     id          BIGSERIAL       PRIMARY KEY,
     type        BIGINT          NOT NULL,
     year        INT             DEFAULT DATE_PART('YEAR', NOW()),
     event_date  DATE            DEFAULT CURRENT_DATE + '90 DAYS'::INTERVAL,
     deadline    DATE            DEFAULT CURRENT_DATE + '14 DAYS'::INTERVAL,
-    status      status          DEFAULT 'U tijeku',
+    status      VARCHAR(20)     DEFAULT 'U tijeku',
     FOREIGN KEY (type) REFERENCES election_type(id),
     UNIQUE (type, year)
 );
-
-CREATE TYPE sex AS ENUM ('M', 'Ž');
 
 CREATE TABLE person (
     id          BIGSERIAL       PRIMARY KEY,
@@ -29,7 +25,7 @@ CREATE TABLE person (
     address     VARCHAR(200)    NOT NULL,
     pid         CHAR(11)        UNIQUE NOT NULL,
     nationality VARCHAR(200)    NOT NULL,
-    sex         sex             NOT NULL,
+    sex         CHAR(1)         NOT NULL,
     CHECK (pid ~ '[1-9][0-9]{10}')
 );
 

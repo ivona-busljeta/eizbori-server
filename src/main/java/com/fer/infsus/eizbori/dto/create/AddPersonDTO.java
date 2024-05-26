@@ -9,11 +9,9 @@ import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Setter
 public class AddPersonDTO {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @NotNull
     @Length(max = 200)
@@ -46,7 +44,7 @@ public class AddPersonDTO {
             Person person = new Person();
             person.setFirstName(firstName);
             person.setLastName(lastName);
-            person.setDob(LocalDate.parse(dob, formatter));
+            person.setDob(LocalDate.parse(dob));
             person.setAddress(address);
             person.setPid(pid);
             person.setNationality(nationality);
