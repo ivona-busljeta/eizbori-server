@@ -2,6 +2,7 @@ package com.fer.infsus.eizbori.service;
 
 import com.fer.infsus.eizbori.dto.create.AddCandidateDTO;
 import com.fer.infsus.eizbori.dto.read.CandidateDTO;
+import com.fer.infsus.eizbori.entity.Election;
 import com.fer.infsus.eizbori.exception.InvalidObjectException;
 import com.fer.infsus.eizbori.entity.Candidate;
 import com.fer.infsus.eizbori.repository.CandidateRepository;
@@ -47,7 +48,8 @@ public class CandidateService {
     }
 
     public List<CandidateDTO> getAllElectionCandidates(long electionId) {
-        return candidateRepository.findAllByElectionId(electionId).stream().map(CandidateDTO::new).toList();
+        Election election = electionService.fetchElection(electionId);
+        return candidateRepository.findAllByElection(election).stream().map(CandidateDTO::new).toList();
     }
 
     public void deleteCandidateById(long id) {
