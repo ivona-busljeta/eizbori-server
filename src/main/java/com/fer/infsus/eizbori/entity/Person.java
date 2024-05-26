@@ -1,5 +1,6 @@
 package com.fer.infsus.eizbori.entity;
 
+import com.fer.infsus.eizbori.config.converters.SexConverter;
 import com.fer.infsus.eizbori.entity.enums.Sex;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -45,7 +46,7 @@ public class Person {
     private String nationality;
 
     @NotNull
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = SexConverter.class)
     private Sex sex;
 
     public Person() {

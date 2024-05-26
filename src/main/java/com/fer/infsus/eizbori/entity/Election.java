@@ -1,5 +1,6 @@
 package com.fer.infsus.eizbori.entity;
 
+import com.fer.infsus.eizbori.config.converters.StatusConverter;
 import com.fer.infsus.eizbori.entity.enums.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -30,6 +31,6 @@ public class Election {
 
     private LocalDate deadline = LocalDate.now(ZoneId.of("Europe/Berlin")).plusDays(14);
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = StatusConverter.class)
     private Status status = Status.ONGOING;
 }
