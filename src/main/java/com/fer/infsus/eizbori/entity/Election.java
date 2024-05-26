@@ -22,7 +22,7 @@ public class Election {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "type")
     private ElectionType type;
 
     private int year = LocalDate.now(ZoneId.of("Europe/Berlin")).getYear();

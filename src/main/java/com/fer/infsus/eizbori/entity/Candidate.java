@@ -20,21 +20,21 @@ public class Candidate {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "election")
     private Election election;
 
     @NotNull
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "person")
     private Person person;
 
     @NotNull
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "position")
     private Position position;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "id")
+    @JoinColumn(name = "party")
     private Party party;
 
     private LocalDate applied = LocalDate.now(ZoneId.of("Europe/Berlin"));
