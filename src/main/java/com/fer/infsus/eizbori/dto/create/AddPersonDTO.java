@@ -50,7 +50,7 @@ public class AddPersonDTO {
             person.setAddress(address);
             person.setPid(pid);
             person.setNationality(nationality);
-            person.setSex(Sex.fromLabel(sex));
+            person.setSex(Sex.valueOf(sex));
             return person;
         } catch (Exception e) {
             throw new InvalidObjectException("person");
