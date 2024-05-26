@@ -6,11 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Setter
 public class AddElectionDTO {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @Getter
     private long typeId;
@@ -28,14 +26,14 @@ public class AddElectionDTO {
     private String status;
 
     public LocalDate getEventDate() {
-        return LocalDate.parse(eventDate, formatter);
+        return LocalDate.parse(eventDate);
     }
 
     public LocalDate getDeadline() {
-        return LocalDate.parse(deadline, formatter);
+        return LocalDate.parse(deadline);
     }
 
     public Status getStatus() {
-        return Status.fromLabel(status);
+        return Status.valueOf(status);
     }
 }
