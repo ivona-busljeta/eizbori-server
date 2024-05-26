@@ -5,11 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 @Setter
 public class AddCandidateDTO {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     @Getter
     private long electionId;
@@ -27,6 +25,6 @@ public class AddCandidateDTO {
     private String applied;
 
     public LocalDate getApplicationDate() {
-        return LocalDate.parse(applied, formatter);
+        return LocalDate.parse(applied);
     }
 }
