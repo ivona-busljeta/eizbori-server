@@ -77,11 +77,9 @@ public class PersonService {
     }
 
     public PersonDTO updatePerson(UpdatePersonDTO updatePersonDTO) {
-        boolean isPresent = personRepository.existsById(updatePersonDTO.getId());
-        if (isPresent) {
-            return new PersonDTO(personRepository.save(updatePersonDTO.toPerson()));
-        }
-        throw new ObjectNotFoundException("person", updatePersonDTO.getId());
+        Person person = fetchPerson(updatePersonDTO.getId());
+        updatePersonDTO.applyChanges(person);
+        return new PersonDTO(personRepository.save(person));
     }
 
     public void deletePersonById(long id) {

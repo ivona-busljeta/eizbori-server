@@ -3,12 +3,8 @@ package com.fer.infsus.eizbori.dto.read;
 import com.fer.infsus.eizbori.entity.Person;
 import lombok.Getter;
 
-import java.time.format.DateTimeFormatter;
-
 @Getter
 public class PersonDTO {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-
     private final long id;
     private final String firstName;
     private final String lastName;
@@ -22,7 +18,7 @@ public class PersonDTO {
         this.id = person.getId();
         this.firstName = person.getFirstName();
         this.lastName = person.getLastName();
-        this.dob = formatter.format(person.getDob());
+        this.dob = person.getDob().toString();
         this.address = person.getAddress();
         this.pid = person.getPid();
         this.nationality = person.getNationality();

@@ -24,11 +24,9 @@ public class UpdatePersonDTO {
     @Length(max = 200)
     private String address;
 
-    public Person toPerson() {
-        Person person = new Person(id);
+    public void applyChanges(Person person) {
         person.setFirstName(firstName);
         person.setLastName(lastName);
         person.setAddress(address);
-        return person;
     }
 }
