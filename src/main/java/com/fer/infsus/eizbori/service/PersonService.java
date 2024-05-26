@@ -1,8 +1,8 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.AddPersonDTO;
-import com.fer.infsus.eizbori.dto.PersonDTO;
-import com.fer.infsus.eizbori.dto.UpdatePersonDTO;
+import com.fer.infsus.eizbori.dto.create.AddPersonDTO;
+import com.fer.infsus.eizbori.dto.read.PersonDTO;
+import com.fer.infsus.eizbori.dto.update.UpdatePersonDTO;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.entity.Person;
 import com.fer.infsus.eizbori.repository.PersonRepository;

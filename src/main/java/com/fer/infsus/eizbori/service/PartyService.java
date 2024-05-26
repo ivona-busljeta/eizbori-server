@@ -1,6 +1,6 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.PartyDTO;
+import com.fer.infsus.eizbori.dto.read.PartyDTO;
 import com.fer.infsus.eizbori.entity.Party;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.repository.PartyRepository;

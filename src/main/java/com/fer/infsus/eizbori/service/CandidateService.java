@@ -1,7 +1,7 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.AddCandidateDTO;
-import com.fer.infsus.eizbori.dto.CandidateDTO;
+import com.fer.infsus.eizbori.dto.create.AddCandidateDTO;
+import com.fer.infsus.eizbori.dto.read.CandidateDTO;
 import com.fer.infsus.eizbori.exception.InvalidObjectException;
 import com.fer.infsus.eizbori.entity.Candidate;
 import com.fer.infsus.eizbori.repository.CandidateRepository;

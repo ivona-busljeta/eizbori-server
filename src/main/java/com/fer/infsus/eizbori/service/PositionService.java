@@ -1,6 +1,6 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.PositionDTO;
+import com.fer.infsus.eizbori.dto.read.PositionDTO;
 import com.fer.infsus.eizbori.entity.Position;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.repository.PositionRepository;

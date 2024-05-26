@@ -1,8 +1,8 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.AddElectionDTO;
-import com.fer.infsus.eizbori.dto.ElectionDTO;
-import com.fer.infsus.eizbori.dto.UpdateElectionDTO;
+import com.fer.infsus.eizbori.dto.create.AddElectionDTO;
+import com.fer.infsus.eizbori.dto.read.ElectionDTO;
+import com.fer.infsus.eizbori.dto.update.UpdateElectionDTO;
 import com.fer.infsus.eizbori.exception.InvalidObjectException;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.entity.Election;

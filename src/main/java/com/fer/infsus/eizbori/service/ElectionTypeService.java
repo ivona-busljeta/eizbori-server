@@ -1,6 +1,6 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.dto.ElectionTypeDTO;
+import com.fer.infsus.eizbori.dto.read.ElectionTypeDTO;
 import com.fer.infsus.eizbori.entity.ElectionType;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.repository.ElectionTypeRepository;
