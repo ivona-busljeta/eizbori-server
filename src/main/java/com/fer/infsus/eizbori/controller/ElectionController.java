@@ -5,6 +5,7 @@ import com.fer.infsus.eizbori.dto.create.AddElectionDTO;
 import com.fer.infsus.eizbori.dto.read.ElectionDTO;
 import com.fer.infsus.eizbori.dto.update.UpdateElectionDTO;
 import com.fer.infsus.eizbori.service.ElectionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,12 +34,12 @@ public class ElectionController {
     }
 
     @PostMapping()
-    public ElectionDTO createElection(@RequestBody AddElectionDTO addElectionDTO) {
+    public ElectionDTO createElection(@Valid @RequestBody AddElectionDTO addElectionDTO) {
         return electionService.saveElection(addElectionDTO);
     }
 
     @PutMapping()
-    public ElectionDTO updateElection(@RequestBody UpdateElectionDTO updateElectionDTO) {
+    public ElectionDTO updateElection(@Valid @RequestBody UpdateElectionDTO updateElectionDTO) {
         return electionService.updateElection(updateElectionDTO);
     }
 
