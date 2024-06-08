@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_0d9pwla" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.3">
+  <bpmn:collaboration id="EIZBORI">
+    <bpmn:participant id="ReviewingRequest" name="Reviewing Request For Online Voting" processRef="ProcessRequest" />
+  </bpmn:collaboration>
+  <bpmn:process id="ProcessRequest" name="Processing Request For Online Voting" isExecutable="true" camunda:historyTimeToLive="2500000">
+    <bpmn:laneSet id="LaneSet_1tnzxv4">
+      <bpmn:lane id="Citizen" name="Citizen">
+        <bpmn:flowNodeRef>RequestCreated</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>HasDeadlinePassed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>RequestFailed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>IsRequestTaken</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>FixRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CheckDeadline</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="ElectionAdministration" name="Election Administration">
+        <bpmn:flowNodeRef>RequestTaken</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ReviewRequest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>HasRequestPassed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SetStatusReturned</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SetStatusApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_15jmzk7</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="HeadOfElectionAdministration" name="Head of Election Administration">
+        <bpmn:flowNodeRef>RequestNotTaken</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>AssignReviewer</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="RequestCreated" name="Request Created">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="RequestId" label="Request ID" type="string" />
+          <camunda:formField id="FirstName" label="First Name" type="string" />
+          <camunda:formField id="LastName" label="Last Name" type="string" />
+          <camunda:formField id="DOB" label="Date of Birth" type="string" />
+          <camunda:formField id="Address" label="Address" type="string" />
+          <camunda:formField id="OIB" label="Personal Identification Number" type="string" />
+          <camunda:formField id="IDN" label="ID Number" type="string" />
+          <camunda:formField id="DateCreated" label="Date Created" type="string" />
+          <camunda:formField id="Deadline" label="Deadline" type="string" />
+          <camunda:formField id="Status" label="Status" type="string" defaultValue="Created" />
+          <camunda:formField id="Author" label="Author" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="HasDeadlinePassed" name="Has the Deadline Passed?">
+      <bpmn:incoming>Flow2</bpmn:incoming>
+      <bpmn:outgoing>DeadlineHasPassed</bpmn:outgoing>
+      <bpmn:outgoing>DeadlineHasNotPassed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="RequestFailed" name="Request Failed">
+      <bpmn:incoming>DeadlineHasPassed</bpmn:incoming>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1anff4y" errorRef="Error_0ph34pp" />
+    </bpmn:endEvent>
+    <bpmn:eventBasedGateway id="IsRequestTaken">
+      <bpmn:incoming>DeadlineHasNotPassed</bpmn:incoming>
+      <bpmn:outgoing>Late</bpmn:outgoing>
+      <bpmn:outgoing>OnTime</bpmn:outgoing>
+    </bpmn:eventBasedGateway>
+    <bpmn:intermediateCatchEvent id="RequestTaken" name="Someone Has Taken the Request">
+      <bpmn:incoming>OnTime</bpmn:incoming>
+      <bpmn:outgoing>Flow_3a</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1jniljx" messageRef="Message_0kczisb" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="ReviewRequest" name="Review Request" camunda:assignee="${Reviewer}" camunda:candidateGroups="admin">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="PassedReview" label="Passed Review" type="boolean" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3a</bpmn:incoming>
+      <bpmn:incoming>Flow_3b2</bpmn:incoming>
+      <bpmn:incoming>Flow_5b2</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="HasRequestPassed" name="Has Request Passed the Review?">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>RequestHasPassed</bpmn:outgoing>
+      <bpmn:outgoing>RequestHasNotPassed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:scriptTask id="SetStatusReturned" name="Set Status To Returned" scriptFormat="javascript">
+      <bpmn:incoming>RequestHasNotPassed</bpmn:incoming>
+      <bpmn:outgoing>Flow_5b1</bpmn:outgoing>
+      <bpmn:script>execution.setVariable("Status", "Returned")</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="FixRequest" name="Fix Request" camunda:assignee="${Author}" camunda:candidateGroups="citizen">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="FirstNameCorrection" label="First Name" type="string" defaultValue="${FirstName}" />
+          <camunda:formField id="LastNameCorrection" label="Last Name" type="string" defaultValue="${LastName}" />
+          <camunda:formField id="DOBCorrection" label="Date of Birth" type="string" defaultValue="${DOB}" />
+          <camunda:formField id="AddressCorrection" label="Address" type="string" defaultValue="${Address}" />
+          <camunda:formField id="IDNCorrection" label="ID Number" type="string" defaultValue="${IDN}" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_5b1</bpmn:incoming>
+      <bpmn:outgoing>Flow_5b2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:scriptTask id="SetStatusApproved" name="Set Status To Approved" scriptFormat="javascript">
+      <bpmn:incoming>RequestHasPassed</bpmn:incoming>
+      <bpmn:outgoing>Flow_5a</bpmn:outgoing>
+      <bpmn:script>execution.setVariable("Status", "Approved")</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:intermediateCatchEvent id="RequestNotTaken" name="Time To Take the Request Has Passed">
+      <bpmn:extensionElements>
+        <camunda:executionListener event="start">
+          <camunda:script scriptFormat="javascript">execution.setVariable("TimePassed", true)</camunda:script>
+        </camunda:executionListener>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Late</bpmn:incoming>
+      <bpmn:outgoing>Flow_3b1</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerEventDefinition_09kbsz2">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT2M</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:intermediateCatchEvent>
+    <bpmn:userTask id="AssignReviewer" name="Assign Reviewer" camunda:candidateGroups="head">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="Reviewer" label="Reviewer" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_3b1</bpmn:incoming>
+      <bpmn:outgoing>Flow_3b2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_15jmzk7">
+      <bpmn:incoming>Flow_5a</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="RequestCreated" targetRef="CheckDeadline" />
+    <bpmn:sequenceFlow id="Flow2" sourceRef="CheckDeadline" targetRef="HasDeadlinePassed" />
+    <bpmn:sequenceFlow id="DeadlineHasPassed" name="Yes" sourceRef="HasDeadlinePassed" targetRef="RequestFailed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${PastDeadline}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="DeadlineHasNotPassed" name="No" sourceRef="HasDeadlinePassed" targetRef="IsRequestTaken">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${PastDeadline == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Late" sourceRef="IsRequestTaken" targetRef="RequestNotTaken" />
+    <bpmn:sequenceFlow id="OnTime" sourceRef="IsRequestTaken" targetRef="RequestTaken" />
+    <bpmn:sequenceFlow id="Flow_3a" sourceRef="RequestTaken" targetRef="ReviewRequest" />
+    <bpmn:sequenceFlow id="Flow_3b1" sourceRef="RequestNotTaken" targetRef="AssignReviewer" />
+    <bpmn:sequenceFlow id="Flow_3b2" sourceRef="AssignReviewer" targetRef="ReviewRequest" />
+    <bpmn:sequenceFlow id="Flow_5b2" sourceRef="FixRequest" targetRef="ReviewRequest" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="ReviewRequest" targetRef="HasRequestPassed" />
+    <bpmn:sequenceFlow id="RequestHasPassed" name="Yes" sourceRef="HasRequestPassed" targetRef="SetStatusApproved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${PassedReview}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="RequestHasNotPassed" name="No" sourceRef="HasRequestPassed" targetRef="SetStatusReturned">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${PassedReview==false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_5b1" sourceRef="SetStatusReturned" targetRef="FixRequest" />
+    <bpmn:sequenceFlow id="Flow_5a" sourceRef="SetStatusApproved" targetRef="Event_15jmzk7" />
+    <bpmn:serviceTask id="CheckDeadline" name="Check Deadline" camunda:class="com.fer.infsus.eizbori.delegate.CheckDeadline">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow2</bpmn:outgoing>
+    </bpmn:serviceTask>
+  </bpmn:process>
+  <bpmn:message id="Message_0kczisb" name="TakeRequestMessage" />
+  <bpmn:error id="Error_0ph34pp" name="DeadlinePassedError" errorCode="00" camunda:errorMessage="Deadline for application has passed" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="EIZBORI">
+      <bpmndi:BPMNShape id="Participant_10uz331_di" bpmnElement="ReviewingRequest" isHorizontal="true">
+        <dc:Bounds x="160" y="77" width="1270" height="638" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0q0lyxd_di" bpmnElement="HeadOfElectionAdministration" isHorizontal="true">
+        <dc:Bounds x="190" y="560" width="1240" height="155" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1ma7z6j_di" bpmnElement="ElectionAdministration" isHorizontal="true">
+        <dc:Bounds x="190" y="315" width="1240" height="245" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0lq9su1_di" bpmnElement="Citizen" isHorizontal="true">
+        <dc:Bounds x="190" y="77" width="1240" height="238" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_05l2hjp_di" bpmnElement="Flow_5a">
+        <di:waypoint x="1090" y="470" />
+        <di:waypoint x="1090" y="440" />
+        <di:waypoint x="1222" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pzi4fk_di" bpmnElement="Flow_5b1">
+        <di:waypoint x="1090" y="330" />
+        <di:waypoint x="1090" y="185" />
+        <di:waypoint x="950" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1x7alg1_di" bpmnElement="RequestHasNotPassed">
+        <di:waypoint x="860" y="415" />
+        <di:waypoint x="860" y="370" />
+        <di:waypoint x="1040" y="370" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="982" y="352" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jdhx4s_di" bpmnElement="RequestHasPassed">
+        <di:waypoint x="860" y="465" />
+        <di:waypoint x="860" y="510" />
+        <di:waypoint x="1040" y="510" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="981" y="490" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mszdx7_di" bpmnElement="Flow_4">
+        <di:waypoint x="740" y="440" />
+        <di:waypoint x="835" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ts7k4g_di" bpmnElement="Flow_5b2">
+        <di:waypoint x="850" y="185" />
+        <di:waypoint x="730" y="185" />
+        <di:waypoint x="730" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tgix23_di" bpmnElement="Flow_3b2">
+        <di:waypoint x="690" y="590" />
+        <di:waypoint x="690" y="480" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1wj9vt2_di" bpmnElement="Flow_3b1">
+        <di:waypoint x="368" y="630" />
+        <di:waypoint x="640" y="630" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mf7z8k_di" bpmnElement="Flow_3a">
+        <di:waypoint x="498" y="440" />
+        <di:waypoint x="640" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1jn4rih_di" bpmnElement="OnTime">
+        <di:waypoint x="555" y="265" />
+        <di:waypoint x="480" y="265" />
+        <di:waypoint x="480" y="422" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0a7qb25_di" bpmnElement="Late">
+        <di:waypoint x="555" y="265" />
+        <di:waypoint x="350" y="265" />
+        <di:waypoint x="350" y="612" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1he29f6_di" bpmnElement="DeadlineHasNotPassed">
+        <di:waypoint x="580" y="210" />
+        <di:waypoint x="580" y="240" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="588" y="218" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0nip7lf_di" bpmnElement="DeadlineHasPassed">
+        <di:waypoint x="580" y="160" />
+        <di:waypoint x="580" y="133" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="586" y="144" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0luokn1_di" bpmnElement="Flow2">
+        <di:waypoint x="470" y="185" />
+        <di:waypoint x="555" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1gagswd_di" bpmnElement="Flow_1">
+        <di:waypoint x="288" y="185" />
+        <di:waypoint x="370" y="185" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_082ltzt_di" bpmnElement="RequestCreated">
+        <dc:Bounds x="252" y="167" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="228" y="210" width="84" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1v8v7wj_di" bpmnElement="HasDeadlinePassed" isMarkerVisible="true">
+        <dc:Bounds x="555" y="160" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="617" y="171" width="85" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0fp5nat_di" bpmnElement="RequestFailed">
+        <dc:Bounds x="562" y="97" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="612" y="108" width="75" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_05fym4o_di" bpmnElement="IsRequestTaken">
+        <dc:Bounds x="555" y="240" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0i0zav1_di" bpmnElement="RequestTaken">
+        <dc:Bounds x="462" y="422" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="445" y="468" width="70" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_04t9pa7_di" bpmnElement="ReviewRequest">
+        <dc:Bounds x="640" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1rsbwzw_di" bpmnElement="HasRequestPassed" isMarkerVisible="true">
+        <dc:Bounds x="835" y="415" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="897" y="425" width="65" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hcvi29_di" bpmnElement="SetStatusReturned">
+        <dc:Bounds x="1040" y="330" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0r9ja38_di" bpmnElement="FixRequest">
+        <dc:Bounds x="850" y="145" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07eqdo3_di" bpmnElement="SetStatusApproved">
+        <dc:Bounds x="1040" y="470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ld4219_di" bpmnElement="RequestNotTaken">
+        <dc:Bounds x="332" y="612" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="309" y="655" width="84" height="40" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_197irpt_di" bpmnElement="AssignReviewer">
+        <dc:Bounds x="640" y="590" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15jmzk7_di" bpmnElement="Event_15jmzk7">
+        <dc:Bounds x="1222" y="422" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1rkyob1_di" bpmnElement="CheckDeadline">
+        <dc:Bounds x="370" y="145" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

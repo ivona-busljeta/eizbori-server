@@ -13,6 +13,16 @@ SELECT id, 2021, '2021-05-16', '2021-04-30', 'Završen'
 FROM election_type
 WHERE code = 'LOKGN';
 
+INSERT INTO election(type, year, event_date, deadline, status)
+SELECT id, 2024, '2024-07-06', '2024-06-19', 'U tijeku'
+FROM election_type
+WHERE code = 'PRH';
+
+INSERT INTO election(type, year, event_date, deadline, status)
+SELECT id, 2024, '2024-06-14', '2024-05-28', 'U tijeku'
+FROM election_type
+WHERE code = 'LOKGN';
+
 INSERT INTO person(first_name, last_name, dob, address, pid, nationality, sex)
 VALUES
     ('Tomislav', 'Tomašević', '1982-01-13', 'Ilica 1, 10000 Zagreb', '10000000000', 'Hrvat', 'M'),

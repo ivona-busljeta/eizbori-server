@@ -3,13 +3,16 @@ package com.fer.infsus.eizbori.service;
 import com.fer.infsus.eizbori.dto.create.AddElectionDTO;
 import com.fer.infsus.eizbori.dto.read.ElectionDTO;
 import com.fer.infsus.eizbori.dto.update.UpdateElectionDTO;
+import com.fer.infsus.eizbori.entity.enums.Status;
 import com.fer.infsus.eizbori.exception.InvalidObjectException;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.entity.Election;
+import com.fer.infsus.eizbori.model.ElectionInfo;
 import com.fer.infsus.eizbori.repository.ElectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,6 +42,10 @@ public class ElectionService {
         } catch (Exception e) {
             throw new InvalidObjectException("election");
         }
+    }
+
+    public List<ElectionInfo> getElections() {
+        return electionRepository.findByStatusNotOrderByEventDateDesc(Status.FINISHED).stream().map(ElectionInfo::new).toList();
     }
 
     public List<ElectionDTO> getAllElections() {
