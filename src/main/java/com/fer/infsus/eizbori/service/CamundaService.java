@@ -52,7 +52,7 @@ public class CamundaService {
             if (!isAuthor) {
                 Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
 
-                boolean isTimePassed = values.containsKey("TimePassed") && (boolean) values.get("TimePassed");
+                boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
                 if (!isTimePassed) {
                     citizenRequests.add(new CitizenRequestInfo(values));
                 }
@@ -70,8 +70,9 @@ public class CamundaService {
             if (!isAuthor) {
                 Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
 
-                boolean isTimePassed = values.containsKey("TimePassed") && (boolean) values.get("TimePassed");
-                if (isTimePassed) {
+                boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
+                boolean isReviewerSet = values.get("Reviewer") != null;
+                if (isTimePassed && !isReviewerSet) {
                     citizenRequests.add(new CitizenRequestInfo(values));
                 }
             }

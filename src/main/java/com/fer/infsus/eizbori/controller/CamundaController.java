@@ -19,6 +19,8 @@ import java.util.Optional;
 public class CamundaController {
 
     private final String GROUP_CITIZEN = "citizen";
+    private final String GROUP_ADMIN = "admin";
+    private final String GROUP_HEAD = "head";
 
     private final CamundaService camundaService;
     private final ElectionService electionService;
@@ -103,7 +105,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/requests")
     public String requests(@PathVariable String userId, Model model) {
-        if (isUserInGroup(userId, "admin")) {
+        if (isUserInGroup(userId, GROUP_ADMIN)) {
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
 
             model.addAttribute("requests", requests);
@@ -115,7 +117,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/master")
     public String master(@PathVariable String userId, Model model) {
-        if (isUserInGroup(userId, "head")) {
+        if (isUserInGroup(userId, GROUP_HEAD)) {
             List<CitizenRequestInfo> requests = camundaService.getCitizenTimeoutRequestsToMaster(userId);
 
             model.addAttribute("requests", requests);
