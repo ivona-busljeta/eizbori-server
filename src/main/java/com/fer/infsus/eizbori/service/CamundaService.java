@@ -2,6 +2,7 @@ package com.fer.infsus.eizbori.service;
 
 import com.fer.infsus.eizbori.model.CitizenRequestDetailedInfo;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
+import com.fer.infsus.eizbori.model.RequestReviewInfo;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
 import org.camunda.bpm.engine.identity.User;
@@ -163,6 +164,19 @@ public class CamundaService {
             if (isRequestedAuthor && isRequestedElection) {
                 camundaEngineService.claimTask(task.getId(), userId);
                 camundaEngineService.completeTask(task.getId(), Map.of("Reviewer", reviewer));
+                return;
+            }
+        }
+    }
+
+    public void sendRequestReview(String userId, String requestAuthor, Long requestElectionId, RequestReviewInfo reviewInfo) {
+        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+        for (Task task : tasks) {
+            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
+            boolean isRequestedAuthor = variables.get("Author") != null && requestAuthor.equals(variables.get("Author"));
+            boolean isRequestedElection = variables.get("ElectionId") != null && variables.get("ElectionId") == requestElectionId;
+            if (isRequestedAuthor && isRequestedElection) {
+                camundaEngineService.completeTask(task.getId(), reviewInfo.toVariables());
                 return;
             }
         }

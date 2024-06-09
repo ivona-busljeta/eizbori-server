@@ -1,9 +1,6 @@
 package com.fer.infsus.eizbori.controller;
 
-import com.fer.infsus.eizbori.model.CitizenRequestDetailedInfo;
-import com.fer.infsus.eizbori.model.CitizenRequestInfo;
-import com.fer.infsus.eizbori.model.ElectionInfo;
-import com.fer.infsus.eizbori.model.UserInfo;
+import com.fer.infsus.eizbori.model.*;
 import com.fer.infsus.eizbori.service.CamundaService;
 import com.fer.infsus.eizbori.service.ElectionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,22 +115,21 @@ public class CamundaController {
     }
 
     @GetMapping("/{userId}/requests/review")
-    public String requestReview(@PathVariable String userId, Model model) {
+    public String requestReview(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
-            //List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
-            //List<CitizenRequestInfo> acceptedRequests = camundaService.getYourAcceptedCitizenRequests(userId);
-
-            CitizenRequestInfo request = new CitizenRequestInfo();
-            request.setFirstName("Ivona");
-            request.setLastName("Ivan");
-            request.setDob("2000-01-01");
-            request.setAddress("Palinovecka");
-            request.setOib("645774745");
-            request.setIdn("32534365");
-
+            CitizenRequestInfo request = camundaService.getCitizenRequestForElection(author, electionId);
             model.addAttribute("request", request);
+            model.addAttribute("review", new RequestReviewInfo());
+            return "reviewRequest";
+        }
+        return "403";
+    }
 
-            return "checkUserApplication";
+    @PostMapping("/{userId}/requests/review/submit")
+    public String submitReview(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, RequestReviewInfo requestReviewInfo) {
+        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
+            camundaService.sendRequestReview(userId, author, electionId, requestReviewInfo);
+            return "redirect:/{userId}/requests";
         }
         return "403";
     }
@@ -153,7 +149,7 @@ public class CamundaController {
     }
 
     @GetMapping("/{userId}/request-control/assign-reviewer")
-    public String assignReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam String electionId, Model model) {
+    public String assignReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
             List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
 
