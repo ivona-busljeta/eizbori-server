@@ -90,7 +90,7 @@ public class CamundaService {
         return citizenRequests;
     }
 
-    public List<CitizenRequestDetailedInfo> getCitizenRequestsToMaster(String userId) {
+    public List<CitizenRequestDetailedInfo> getCitizenAssignedRequestsToMaster(String userId) {
         List<CitizenRequestDetailedInfo> citizenRequests = new ArrayList<>();
         List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
         for (HistoricProcessInstance instance : instances) {
@@ -149,6 +149,20 @@ public class CamundaService {
                 citizenRequestInfo.setDateCreated(variables.get("DateCreated").toString());
                 citizenRequestInfo.setDeadline(variables.get("Deadline").toString());
                 camundaEngineService.completeTask(task.getId(), citizenRequestInfo.toVariables());
+                return;
+            }
+        }
+    }
+
+    public void assignReviewerToRequest(String userId, String requestAuthor, Long requestElectionId, String reviewer) {
+        List<Task> tasks = camundaEngineService.getUnassignedGroupTasks("head", processKey);
+        for (Task task : tasks) {
+            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
+            boolean isRequestedAuthor = variables.get("Author") != null && requestAuthor.equals(variables.get("Author"));
+            boolean isRequestedElection = variables.get("ElectionId") != null && variables.get("ElectionId") == requestElectionId;
+            if (isRequestedAuthor && isRequestedElection) {
+                camundaEngineService.claimTask(task.getId(), userId);
+                camundaEngineService.completeTask(task.getId(), Map.of("Reviewer", reviewer));
                 return;
             }
         }

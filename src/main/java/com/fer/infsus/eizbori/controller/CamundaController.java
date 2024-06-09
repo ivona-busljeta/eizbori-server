@@ -138,33 +138,42 @@ public class CamundaController {
         return "403";
     }
 
-    @GetMapping("/{userId}/master")
+    @GetMapping("/{userId}/request-control")
     public String master(@PathVariable String userId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
             List<CitizenRequestDetailedInfo> unassigned = camundaService.getUnassignedCitizenRequestsToMaster(userId);
-            List<CitizenRequestDetailedInfo> requests = camundaService.getCitizenRequestsToMaster(userId);
+            List<CitizenRequestDetailedInfo> assigned = camundaService.getCitizenAssignedRequestsToMaster(userId);
 
             model.addAttribute("unassigned", unassigned);
-            model.addAttribute("requests", requests);
+            model.addAttribute("assigned", assigned);
 
             return "master";
         }
         return "403";
     }
 
-    @GetMapping("/{userId}/master/assign-reviewer")
-    public String assignReviewer(@PathVariable String userId, Model model) {
+    @GetMapping("/{userId}/request-control/assign-reviewer")
+    public String assignReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam String electionId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
             List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
+
+            model.addAttribute("author", author);
+            model.addAttribute("electionId", electionId);
             model.addAttribute("reviewers", reviewers);
             model.addAttribute("assignedReviewer", new UserInfo());
+
             return "assignReviewer";
         }
         return "403";
     }
 
-    //@PostMapping("/{userId}/master/assign-reviewer/submit")
-    //public String submitAssignedReviewer(@PathVariable String userId, UserInfo userInfo) {
-    //}
+    @PostMapping("/{userId}/request-control/assign-reviewer/submit")
+    public String submitAssignedReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, UserInfo userInfo) {
+        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
+            camundaService.assignReviewerToRequest(userId, author, electionId, userInfo.getUserId());
+            return "redirect:/{userId}/request-control";
+        }
+        return "403";
+    }
 
 }
