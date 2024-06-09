@@ -22,6 +22,7 @@
             <th>Date Created</th>
             <th hidden="hidden">Deadline</th>
             <th>Status</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -37,7 +38,7 @@
             <td th:text="${request.dateCreated}"></td>
             <td th:hidden="${request.deadline}"></td>
             <td th:text="${request.status}"></td>
-            <td th:if="${request.status == 'Created'}" class="text-center"><button class="btn btn-sm btn-primary">Apply</button></td>
+            <td th:if="${request.status == 'Created'}" class="text-center"><button class="btn btn-sm btn-primary">Assign reviewer</button></td>
         </tr>
         </tbody>
     </table>

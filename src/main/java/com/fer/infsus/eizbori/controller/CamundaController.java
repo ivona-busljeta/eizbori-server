@@ -127,7 +127,17 @@ public class CamundaController {
 
     @GetMapping("/{userId}/master/assign-reviewer")
     public String assignReviewer(@PathVariable String userId, Model model) {
-        List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
+        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
+            List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
+            model.addAttribute("reviewers", reviewers);
+            model.addAttribute("assignedReviewer", new UserInfo());
+            return "assignReviewer";
+        }
         return "403";
     }
+
+    //@PostMapping("/{userId}/master/assign-reviewer/submit")
+    //public String submitAssignedReviewer(@PathVariable String userId, UserInfo userInfo) {
+    //}
+
 }
