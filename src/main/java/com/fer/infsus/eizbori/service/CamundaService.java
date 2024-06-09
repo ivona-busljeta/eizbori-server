@@ -1,5 +1,6 @@
 package com.fer.infsus.eizbori.service;
 
+import com.fer.infsus.eizbori.model.CitizenRequestDetailedInfo;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
@@ -70,8 +71,26 @@ public class CamundaService {
         return citizenRequests;
     }
 
-    public List<CitizenRequestInfo> getCitizenTimeoutRequestsToMaster(String userId) {
-        List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
+    public List<CitizenRequestDetailedInfo> getCitizenRequestsToMaster(String userId) {
+        List<CitizenRequestDetailedInfo> citizenRequests = new ArrayList<>();
+        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
+        for (HistoricProcessInstance instance : instances) {
+            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
+            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
+            if (!isAuthor) {
+                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+
+                boolean isReviewerSet = values.get("Reviewer") != null;
+                if (isReviewerSet) {
+                    citizenRequests.add(new CitizenRequestDetailedInfo(values));
+                }
+            }
+        }
+        return citizenRequests;
+    }
+
+    public List<CitizenRequestDetailedInfo> getUnassignedCitizenRequestsToMaster(String userId) {
+        List<CitizenRequestDetailedInfo> citizenRequests = new ArrayList<>();
         List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
         for (HistoricProcessInstance instance : instances) {
             List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
@@ -82,7 +101,7 @@ public class CamundaService {
                 boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
                 boolean isReviewerSet = values.get("Reviewer") != null;
                 if (isTimePassed && !isReviewerSet) {
-                    citizenRequests.add(new CitizenRequestInfo(values));
+                    citizenRequests.add(new CitizenRequestDetailedInfo(values));
                 }
             }
         }
