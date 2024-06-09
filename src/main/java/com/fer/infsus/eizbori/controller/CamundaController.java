@@ -68,4 +68,15 @@ public class CamundaController {
         }
         return "403";
     }
+
+    @GetMapping("/{userId}/master")
+    public String master(@PathVariable String userId, Model model) {
+        if (isUserInGroup(userId, "head")) {
+            List<CitizenRequestInfo> requests = camundaService.getCitizenTimeoutRequestsToMaster(userId);
+
+            model.addAttribute("requests", requests);
+            return "master";
+        }
+        return "403";
+    }
 }
