@@ -107,10 +107,33 @@ public class CamundaController {
     public String requests(@PathVariable String userId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
+            List<CitizenRequestInfo> acceptedRequests = camundaService.getYourAcceptedCitizenRequests(userId);
 
             model.addAttribute("requests", requests);
+            model.addAttribute("acceptedRequests", acceptedRequests);
 
             return "requests";
+        }
+        return "403";
+    }
+
+    @GetMapping("/{userId}/requests/review")
+    public String requestReview(@PathVariable String userId, Model model) {
+        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
+            //List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
+            //List<CitizenRequestInfo> acceptedRequests = camundaService.getYourAcceptedCitizenRequests(userId);
+
+            CitizenRequestInfo request = new CitizenRequestInfo();
+            request.setFirstName("Ivona");
+            request.setLastName("Ivan");
+            request.setDob("2000-01-01");
+            request.setAddress("Palinovecka");
+            request.setOib("645774745");
+            request.setIdn("32534365");
+
+            model.addAttribute("request", request);
+
+            return "checkUserApplication";
         }
         return "403";
     }

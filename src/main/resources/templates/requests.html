@@ -62,7 +62,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="request : ${requests}">
+        <tr th:each="request : ${acceptedRequests}">
             <td th:text="${request.electionId}"></td>
             <td th:hidden="${request.author}"></td>
             <td th:text="${request.firstName}"></td>

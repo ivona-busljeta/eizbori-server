@@ -68,6 +68,7 @@
       <bpmn:extensionElements>
         <camunda:formData>
           <camunda:formField id="PassedReview" label="Passed Review" type="boolean" />
+          <camunda:formField id="Comment" label="Comment" type="string" />
         </camunda:formData>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_3a</bpmn:incoming>
@@ -178,6 +179,15 @@
       <bpmndi:BPMNShape id="Lane_0lq9su1_di" bpmnElement="Citizen" isHorizontal="true">
         <dc:Bounds x="190" y="77" width="1240" height="238" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0emwq1u_di" bpmnElement="Flow_5b3">
+        <di:waypoint x="770" y="185" />
+        <di:waypoint x="720" y="185" />
+        <di:waypoint x="720" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1kl54xu_di" bpmnElement="Flow_5b2">
+        <di:waypoint x="940" y="185" />
+        <di:waypoint x="870" y="185" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_05l2hjp_di" bpmnElement="Flow_5a">
         <di:waypoint x="1090" y="470" />
         <di:waypoint x="1090" y="440" />
@@ -251,15 +261,6 @@
       <bpmndi:BPMNEdge id="Flow_1gagswd_di" bpmnElement="Flow_1">
         <di:waypoint x="288" y="185" />
         <di:waypoint x="370" y="185" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1kl54xu_di" bpmnElement="Flow_5b2">
-        <di:waypoint x="940" y="185" />
-        <di:waypoint x="870" y="185" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0emwq1u_di" bpmnElement="Flow_5b3">
-        <di:waypoint x="770" y="185" />
-        <di:waypoint x="720" y="185" />
-        <di:waypoint x="720" y="400" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Event_082ltzt_di" bpmnElement="RequestCreated">
         <dc:Bounds x="252" y="167" width="36" height="36" />

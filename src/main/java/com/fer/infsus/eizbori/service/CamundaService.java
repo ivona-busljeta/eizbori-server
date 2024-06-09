@@ -63,7 +63,26 @@ public class CamundaService {
                 Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
 
                 boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
-                if (!isTimePassed) {
+                boolean isReviewerSet = values.get("Reviewer") != null;
+                if (!isTimePassed && !isReviewerSet) {
+                    citizenRequests.add(new CitizenRequestInfo(values));
+                }
+            }
+        }
+        return citizenRequests;
+    }
+
+    public List<CitizenRequestInfo> getYourAcceptedCitizenRequests(String userId) {
+        List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
+        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
+        for (HistoricProcessInstance instance : instances) {
+            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
+            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
+            if (!isAuthor) {
+                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+
+                boolean youAreReviewer = values.get("Reviewer") != null && userId.equals(values.get("Reviewer"));
+                if (youAreReviewer) {
                     citizenRequests.add(new CitizenRequestInfo(values));
                 }
             }
