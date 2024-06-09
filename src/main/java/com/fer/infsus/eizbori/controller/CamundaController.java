@@ -45,8 +45,15 @@ public class CamundaController {
                 }
             });
 
+            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
+            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
+            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
+
             model.addAttribute("elections", elections);
             model.addAttribute("requests", requests);
+            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
+            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
+            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
 
             return "elections";
         }
@@ -106,8 +113,15 @@ public class CamundaController {
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
             List<CitizenRequestInfo> acceptedRequests = camundaService.getYourAcceptedCitizenRequests(userId);
 
+            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
+            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
+            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
+
             model.addAttribute("requests", requests);
             model.addAttribute("acceptedRequests", acceptedRequests);
+            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
+            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
+            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
 
             return "requests";
         }
@@ -140,8 +154,15 @@ public class CamundaController {
             List<CitizenRequestDetailedInfo> unassigned = camundaService.getUnassignedCitizenRequestsToMaster(userId);
             List<CitizenRequestDetailedInfo> assigned = camundaService.getCitizenAssignedRequestsToMaster(userId);
 
+            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
+            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
+            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
+
             model.addAttribute("unassigned", unassigned);
             model.addAttribute("assigned", assigned);
+            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
+            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
+            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
 
             return "master";
         }
