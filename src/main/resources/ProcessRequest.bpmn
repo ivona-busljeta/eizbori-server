@@ -17,9 +17,9 @@
         <bpmn:flowNodeRef>RequestTaken</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ReviewRequest</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>HasRequestPassed</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>SetStatusReturned</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>SetStatusApproved</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Event_15jmzk7</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SetStatusApproved</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>SetStatusReturned</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="HeadOfElectionAdministration" name="Head of Election Administration">
         <bpmn:flowNodeRef>RequestNotTaken</bpmn:flowNodeRef>
@@ -29,7 +29,7 @@
     <bpmn:startEvent id="RequestCreated" name="Request Created">
       <bpmn:extensionElements>
         <camunda:formData>
-          <camunda:formField id="RequestId" label="Request ID" type="string" />
+          <camunda:formField id="ElectionId" label="Election ID" type="long" />
           <camunda:formField id="FirstName" label="First Name" type="string" />
           <camunda:formField id="LastName" label="Last Name" type="string" />
           <camunda:formField id="DOB" label="Date of Birth" type="string" />
@@ -79,11 +79,6 @@
       <bpmn:outgoing>RequestHasPassed</bpmn:outgoing>
       <bpmn:outgoing>RequestHasNotPassed</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:scriptTask id="SetStatusReturned" name="Set Status To Returned" scriptFormat="javascript">
-      <bpmn:incoming>RequestHasNotPassed</bpmn:incoming>
-      <bpmn:outgoing>Flow_5b1</bpmn:outgoing>
-      <bpmn:script>execution.setVariable("Status", "Returned")</bpmn:script>
-    </bpmn:scriptTask>
     <bpmn:userTask id="FixRequest" name="Fix Request" camunda:assignee="${Author}" camunda:candidateGroups="citizen">
       <bpmn:extensionElements>
         <camunda:formData>
@@ -97,16 +92,9 @@
       <bpmn:incoming>Flow_5b1</bpmn:incoming>
       <bpmn:outgoing>Flow_5b2</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:scriptTask id="SetStatusApproved" name="Set Status To Approved" scriptFormat="javascript">
-      <bpmn:incoming>RequestHasPassed</bpmn:incoming>
-      <bpmn:outgoing>Flow_5a</bpmn:outgoing>
-      <bpmn:script>execution.setVariable("Status", "Approved")</bpmn:script>
-    </bpmn:scriptTask>
     <bpmn:intermediateCatchEvent id="RequestNotTaken" name="Time To Take the Request Has Passed">
       <bpmn:extensionElements>
-        <camunda:executionListener event="start">
-          <camunda:script scriptFormat="javascript">execution.setVariable("TimePassed", true)</camunda:script>
-        </camunda:executionListener>
+        <camunda:executionListener class="com.fer.infsus.eizbori.delegate.RequestNotTaken" event="start" />
       </bpmn:extensionElements>
       <bpmn:incoming>Late</bpmn:incoming>
       <bpmn:outgoing>Flow_3b1</bpmn:outgoing>
@@ -152,6 +140,14 @@
     <bpmn:serviceTask id="CheckDeadline" name="Check Deadline" camunda:class="com.fer.infsus.eizbori.delegate.CheckDeadline">
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="SetStatusApproved" name="Set Status To Approved" camunda:class="com.fer.infsus.eizbori.delegate.SetStatusApproved">
+      <bpmn:incoming>RequestHasPassed</bpmn:incoming>
+      <bpmn:outgoing>Flow_5a</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="SetStatusReturned" name="Set Status To Returned" camunda:class="com.fer.infsus.eizbori.delegate.SetStatusReturned">
+      <bpmn:incoming>RequestHasNotPassed</bpmn:incoming>
+      <bpmn:outgoing>Flow_5b1</bpmn:outgoing>
     </bpmn:serviceTask>
   </bpmn:process>
   <bpmn:message id="Message_0kczisb" name="TakeRequestMessage" />
@@ -285,14 +281,8 @@
           <dc:Bounds x="897" y="425" width="65" height="40" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1hcvi29_di" bpmnElement="SetStatusReturned">
-        <dc:Bounds x="1040" y="330" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0r9ja38_di" bpmnElement="FixRequest">
         <dc:Bounds x="850" y="145" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_07eqdo3_di" bpmnElement="SetStatusApproved">
-        <dc:Bounds x="1040" y="470" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0ld4219_di" bpmnElement="RequestNotTaken">
         <dc:Bounds x="332" y="612" width="36" height="36" />
@@ -308,6 +298,12 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1rkyob1_di" bpmnElement="CheckDeadline">
         <dc:Bounds x="370" y="145" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ge1zq5_di" bpmnElement="SetStatusApproved">
+        <dc:Bounds x="1040" y="470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07yt4em_di" bpmnElement="SetStatusReturned">
+        <dc:Bounds x="1040" y="330" width="100" height="80" />
       </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

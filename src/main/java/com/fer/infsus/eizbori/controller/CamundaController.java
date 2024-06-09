@@ -30,14 +30,22 @@ public class CamundaController {
     @GetMapping("/{userId}/elections")
     public String elections(@PathVariable String userId, Model model) {
         if (isUserInGroup(userId, "citizen")) {
-            List<ElectionInfo> elections = electionService.getElections();
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequests(userId);
+            List<ElectionInfo> elections = electionService.getActiveElections();
+
+            List<Long> appliedElections = requests.stream().map(CitizenRequestInfo::getElectionId).toList();
+            elections.forEach(election -> {
+                if (appliedElections.contains(election.getId())) {
+                    election.setCanApply(false);
+                }
+            });
 
             model.addAttribute("elections", elections);
             model.addAttribute("requests", requests);
-        }
 
-        return "elections";
+            return "elections";
+        }
+        return "403";
     }
 
     private boolean isUserInGroup(String userId, String groupId) {

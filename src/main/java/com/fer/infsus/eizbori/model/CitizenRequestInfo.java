@@ -8,7 +8,7 @@ import java.util.Map;
 @Setter
 @Getter
 public class CitizenRequestInfo {
-    private String requestId;
+    private Long electionId;
     private String author;
     private String firstName;
     private String lastName;
@@ -21,7 +21,7 @@ public class CitizenRequestInfo {
     private String status;
 
     public CitizenRequestInfo(Map<String, Object> variables) {
-        this.requestId = (String) variables.get("RequestId");
+        this.electionId = (Long) variables.get("ElectionId");
         this.author = (String) variables.get("Author");
         this.firstName = (String) variables.get("FirstName");
         this.lastName = (String) variables.get("LastName");
