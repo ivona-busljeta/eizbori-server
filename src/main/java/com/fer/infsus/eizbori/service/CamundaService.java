@@ -3,6 +3,7 @@ package com.fer.infsus.eizbori.service;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,10 @@ public class CamundaService {
     @Autowired
     public CamundaService(CamundaEngineService camundaEngineService) {
         this.camundaEngineService = camundaEngineService;
+    }
+
+    public void sendCitizenRequest(CitizenRequestInfo citizenRequestInfo) {
+        camundaEngineService.startProcessInstance(processKey, citizenRequestInfo.toVariables());
     }
 
     public List<CitizenRequestInfo> getCitizenRequests(String userId) {
@@ -72,5 +77,32 @@ public class CamundaService {
             }
         }
         return citizenRequests;
+    }
+
+    public CitizenRequestInfo getCitizenRequestForElection(String userId, Long electionId) {
+        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
+        for (HistoricProcessInstance instance : instances) {
+            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
+            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
+            boolean isForElection = variables.stream().anyMatch(variable -> variable.getName().equals("ElectionId") && variable.getValue().equals(electionId));
+            if (isAuthor && isForElection) {
+                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+                return new CitizenRequestInfo(values);
+            }
+        }
+        return new CitizenRequestInfo();
+    }
+
+    public void sendCitizenRequestCorrection(String userId, Long electionId, CitizenRequestInfo citizenRequestInfo) {
+        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+        for (Task task : tasks) {
+            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
+            if (variables.get("ElectionId") != null && variables.get("ElectionId") == electionId) {
+                citizenRequestInfo.setDateCreated(variables.get("DateCreated").toString());
+                citizenRequestInfo.setDeadline(variables.get("Deadline").toString());
+                camundaEngineService.completeTask(task.getId(), citizenRequestInfo.toVariables());
+                return;
+            }
+        }
     }
 }

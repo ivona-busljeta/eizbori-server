@@ -7,7 +7,6 @@ import com.fer.infsus.eizbori.entity.enums.Status;
 import com.fer.infsus.eizbori.exception.InvalidObjectException;
 import com.fer.infsus.eizbori.exception.ObjectNotFoundException;
 import com.fer.infsus.eizbori.entity.Election;
-import com.fer.infsus.eizbori.model.ElectionInfo;
 import com.fer.infsus.eizbori.repository.ElectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,8 +42,12 @@ public class ElectionService {
         }
     }
 
-    public List<ElectionInfo> getActiveElections() {
-        return electionRepository.findByStatusNotOrderByEventDateDesc(Status.FINISHED).stream().map(ElectionInfo::new).toList();
+    public List<Election> getActiveElections() {
+        return electionRepository.findByStatusNotOrderByEventDateDesc(Status.FINISHED);
+    }
+
+    public Election getElection(long id) {
+        return electionRepository.findById(id).isPresent() ? electionRepository.findById(id).get() : null;
     }
 
     public List<ElectionDTO> getAllElections() {

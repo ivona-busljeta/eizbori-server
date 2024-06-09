@@ -93,8 +93,8 @@ public class CamundaEngineService {
                 .list();
     }
 
-    public void getTaskVariables(String taskId) {
-        taskService.getVariables(taskId);
+    public Map<String, Object> getTaskVariables(String taskId) {
+        return taskService.getVariables(taskId);
     }
 
     public void claimTask(String taskId, String userId) {
