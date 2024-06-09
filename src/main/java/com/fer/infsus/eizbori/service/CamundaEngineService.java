@@ -3,6 +3,7 @@ package com.fer.infsus.eizbori.service;
 import org.camunda.bpm.engine.*;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
+import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
@@ -17,16 +18,34 @@ import java.util.Map;
 public class CamundaEngineService {
 
     private final HistoryService historyService;
+    private final IdentityService identityService;
     private final RepositoryService repositoryService;
     private final RuntimeService runtimeService;
     private final TaskService taskService;
 
     @Autowired
-    public CamundaEngineService(HistoryService historyService, RepositoryService repositoryService, RuntimeService runtimeService, TaskService taskService) {
+    public CamundaEngineService(HistoryService historyService, IdentityService identityService, RepositoryService repositoryService, RuntimeService runtimeService, TaskService taskService) {
         this.historyService = historyService;
+        this.identityService = identityService;
         this.repositoryService = repositoryService;
         this.runtimeService = runtimeService;
         this.taskService = taskService;
+    }
+
+    public boolean isUserInGroup(String userId, String groupId) {
+        return !identityService
+                .createUserQuery()
+                .userId(userId)
+                .memberOfGroup(groupId)
+                .list()
+                .isEmpty();
+    }
+
+    public List<User> getUsersInGroup(String groupId) {
+        return identityService
+                .createUserQuery()
+                .memberOfGroup(groupId)
+                .list();
     }
 
     public String getXmlDefinition(String processDefinitionKey) {

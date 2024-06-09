@@ -3,6 +3,7 @@ package com.fer.infsus.eizbori.service;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
 import org.camunda.bpm.engine.history.HistoricVariableInstance;
+import org.camunda.bpm.engine.identity.User;
 import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,14 @@ public class CamundaService {
     @Autowired
     public CamundaService(CamundaEngineService camundaEngineService) {
         this.camundaEngineService = camundaEngineService;
+    }
+
+    public boolean isUserInGroup(String userId, String groupId) {
+        return camundaEngineService.isUserInGroup(userId, groupId);
+    }
+
+    public List<User> getUsersInGroup(String groupId) {
+        return camundaEngineService.getUsersInGroup(groupId);
     }
 
     public void sendCitizenRequest(CitizenRequestInfo citizenRequestInfo) {

@@ -2,9 +2,9 @@ package com.fer.infsus.eizbori.controller;
 
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import com.fer.infsus.eizbori.model.ElectionInfo;
+import com.fer.infsus.eizbori.model.UserInfo;
 import com.fer.infsus.eizbori.service.CamundaService;
 import com.fer.infsus.eizbori.service.ElectionService;
-import org.camunda.bpm.engine.IdentityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,18 +24,17 @@ public class CamundaController {
 
     private final CamundaService camundaService;
     private final ElectionService electionService;
-    private final IdentityService identityService;
+
 
     @Autowired
-    public CamundaController(ElectionService electionService, CamundaService camundaService, IdentityService identityService) {
+    public CamundaController(ElectionService electionService, CamundaService camundaService) {
         this.electionService = electionService;
         this.camundaService = camundaService;
-        this.identityService = identityService;
     }
 
     @GetMapping("/{userId}/elections")
     public String elections(@PathVariable String userId, Model model) {
-        if (isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
             List<ElectionInfo> elections = electionService.getActiveElections().stream().map(ElectionInfo::new).toList();
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequests(userId);
             requests.forEach(request -> {
@@ -58,7 +57,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/elections/{electionId}/application")
     public String electionApplication(@PathVariable String userId, @PathVariable Long electionId, Model model) {
-        if (isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
             ElectionInfo election = new ElectionInfo(electionService.getElection(electionId));
             model.addAttribute("electionName", election.getName());
             model.addAttribute("formData", new CitizenRequestInfo());
@@ -70,7 +69,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/elections/{electionId}/application/edit")
     public String editApplication(@PathVariable String userId, @PathVariable Long electionId, Model model) {
-        if (isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
             CitizenRequestInfo request = camundaService.getCitizenRequestForElection(userId, electionId);
             model.addAttribute("electionName", request.getElectionName());
             model.addAttribute("formData", request);
@@ -82,7 +81,7 @@ public class CamundaController {
 
     @PostMapping("/{userId}/elections/{electionId}/application/submit")
     public String submitApplication(@PathVariable String userId, @PathVariable Long electionId, CitizenRequestInfo citizenRequestInfo) {
-        if (isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
             CitizenRequestInfo request = camundaService.getCitizenRequestForElection(userId, electionId);
             if (request.isEmpty()) {
                 citizenRequestInfo.setElectionId(electionId);
@@ -105,7 +104,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/requests")
     public String requests(@PathVariable String userId, Model model) {
-        if (isUserInGroup(userId, GROUP_ADMIN)) {
+        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
             List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
 
             model.addAttribute("requests", requests);
@@ -117,7 +116,7 @@ public class CamundaController {
 
     @GetMapping("/{userId}/master")
     public String master(@PathVariable String userId, Model model) {
-        if (isUserInGroup(userId, GROUP_HEAD)) {
+        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
             List<CitizenRequestInfo> requests = camundaService.getCitizenTimeoutRequestsToMaster(userId);
 
             model.addAttribute("requests", requests);
@@ -126,12 +125,9 @@ public class CamundaController {
         return "403";
     }
 
-    private boolean isUserInGroup(String userId, String groupId) {
-        return !identityService
-                .createUserQuery()
-                .userId(userId)
-                .memberOfGroup(groupId)
-                .list()
-                .isEmpty();
+    @GetMapping("/{userId}/master/assign-reviewer")
+    public String assignReviewer(@PathVariable String userId, Model model) {
+        List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
+        return "403";
     }
 }
