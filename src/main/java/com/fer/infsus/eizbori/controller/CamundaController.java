@@ -56,4 +56,16 @@ public class CamundaController {
                 .list()
                 .isEmpty();
     }
+
+    @GetMapping("/{userId}/requests")
+    public String requests(@PathVariable String userId, Model model) {
+        if (isUserInGroup(userId, "admin")) {
+            List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
+
+            model.addAttribute("requests", requests);
+
+            return "requests";
+        }
+        return "403";
+    }
 }

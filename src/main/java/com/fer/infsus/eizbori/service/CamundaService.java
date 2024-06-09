@@ -37,4 +37,22 @@ public class CamundaService {
         }
         return citizenRequests;
     }
+
+    public List<CitizenRequestInfo> getCitizenRequestsToAdmin(String userId) {
+        List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
+        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
+        for (HistoricProcessInstance instance : instances) {
+            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
+            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
+            if (!isAuthor) {
+                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+
+                boolean isTimePassed = values.containsKey("TimePassed") && (boolean) values.get("TimePassed");
+                if (!isTimePassed) {
+                    citizenRequests.add(new CitizenRequestInfo(values));
+                }
+            }
+        }
+        return citizenRequests;
+    }
 }

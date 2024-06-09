@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 public class RequestNotTaken implements JavaDelegate {
 
     @Override
-    public void execute(DelegateExecution delegateExecution) {
-        delegateExecution.setVariable("TimePassed", true);
+    public void execute(DelegateExecution delegateExecution) {delegateExecution.setVariable("TimePassed", true);
     }
 }
