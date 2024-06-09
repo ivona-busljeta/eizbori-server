@@ -5,43 +5,76 @@
     <title>eIzbori</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
-<body>
-<div class="container">
-    <h3>Assign reviewer for following timed-out requests</h3>
-    <table class="table table-sm table-bordered">
-        <thead>
-        <tr>
-            <th>Request ID</th>
-            <th hidden="hidden">Author</th>
-            <th>Fist Name</th>
-            <th>Last Name</th>
-            <th>Date of Birth</th>
-            <th>Address</th>
-            <th>OIB</th>
-            <th>ID Number</th>
-            <th>Date Created</th>
-            <th hidden="hidden">Deadline</th>
-            <th>Status</th>
-            <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="request : ${requests}">
-            <td th:text="${request.electionId}"></td>
-            <td th:hidden="${request.author}"></td>
-            <td th:text="${request.firstName}"></td>
-            <td th:text="${request.lastName}"></td>
-            <td th:text="${request.dob}"></td>
-            <td th:text="${request.address}"></td>
-            <td th:text="${request.oib}"></td>
-            <td th:text="${request.idn}"></td>
-            <td th:text="${request.dateCreated}"></td>
-            <td th:hidden="${request.deadline}"></td>
-            <td th:text="${request.status}"></td>
-            <td th:if="${request.status == 'Created'}" class="text-center"><button class="btn btn-sm btn-primary">Assign reviewer</button></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
-</body>
+    <body>
+        <div class="container">
+            <h3>Assign reviewer for following timed-out requests</h3>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Fist Name</th>
+                        <th>Last Name</th>
+                        <th>Date of Birth</th>
+                        <th>Address</th>
+                        <th>OIB</th>
+                        <th>ID Number</th>
+                        <th>Date Created</th>
+                        <th>Deadline</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="request : ${unassigned}">
+                        <td th:text="${request.electionId}"></td>
+                        <td th:text="${request.firstName}"></td>
+                        <td th:text="${request.lastName}"></td>
+                        <td th:text="${request.dob}"></td>
+                        <td th:text="${request.address}"></td>
+                        <td th:text="${request.oib}"></td>
+                        <td th:text="${request.idn}"></td>
+                        <td th:text="${request.dateCreated}"></td>
+                        <td th:text="${request.deadline}"></td>
+                        <td th:text="${request.status}"></td>
+                        <td th:if="${request.status == 'Created'}" class="text-center"><button class="btn btn-sm btn-primary">Assign</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="container">
+            <h3>Assigned requests</h3>
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Fist Name</th>
+                        <th>Last Name</th>
+                        <th>Date of Birth</th>
+                        <th>Address</th>
+                        <th>OIB</th>
+                        <th>ID Number</th>
+                        <th>Date Created</th>
+                        <th>Deadline</th>
+                        <th>Reviewer</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="request : ${requests}">
+                        <td th:text="${request.electionId}"></td>
+                        <td th:text="${request.firstName}"></td>
+                        <td th:text="${request.lastName}"></td>
+                        <td th:text="${request.dob}"></td>
+                        <td th:text="${request.address}"></td>
+                        <td th:text="${request.oib}"></td>
+                        <td th:text="${request.idn}"></td>
+                        <td th:text="${request.dateCreated}"></td>
+                        <td th:hidden="${request.deadline}"></td>
+                        <td th:text="${request.reviewer}"></td>
+                        <td th:text="${request.status}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </body>
 </html>

@@ -1,5 +1,6 @@
 package com.fer.infsus.eizbori.controller;
 
+import com.fer.infsus.eizbori.model.CitizenRequestDetailedInfo;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import com.fer.infsus.eizbori.model.ElectionInfo;
 import com.fer.infsus.eizbori.model.UserInfo;
@@ -117,9 +118,12 @@ public class CamundaController {
     @GetMapping("/{userId}/master")
     public String master(@PathVariable String userId, Model model) {
         if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
-            List<CitizenRequestInfo> requests = camundaService.getCitizenTimeoutRequestsToMaster(userId);
+            List<CitizenRequestDetailedInfo> unassigned = camundaService.getUnassignedCitizenRequestsToMaster(userId);
+            List<CitizenRequestDetailedInfo> requests = camundaService.getCitizenRequestsToMaster(userId);
 
+            model.addAttribute("unassigned", unassigned);
             model.addAttribute("requests", requests);
+
             return "master";
         }
         return "403";
