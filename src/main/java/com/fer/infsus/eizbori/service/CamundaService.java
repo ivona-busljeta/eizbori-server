@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class CamundaService {
@@ -87,6 +87,7 @@ public class CamundaService {
             if (variables.get("ElectionId") != null && variables.get("ElectionId") == electionId) {
                 citizenRequestInfo.setDateCreated((String) variables.get("DateCreated"));
                 citizenRequestInfo.setDeadline((String) variables.get("Deadline"));
+                citizenRequestInfo.setReviewer((String) variables.get("Reviewer"));
                 camundaEngineService.completeTask(task.getId(), citizenRequestInfo.toVariables());
                 return;
             }
@@ -97,7 +98,7 @@ public class CamundaService {
         HistoricProcessInstance instance = getInstanceByAuthorAndElection(requestAuthor, requestElectionId);
         if (instance != null) {
             camundaEngineService.sendMessage("TakeRequestMessage", instance.getId(), Map.of("Reviewer", userId));
-            List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+            List<Task> tasks = camundaEngineService.getUnassignedGroupTasks(userId, processKey);
             Task request = getTaskByAuthorAndElection(tasks, requestAuthor, requestElectionId);
             if (request != null) {
                 camundaEngineService.claimTask(request.getId(), userId);
@@ -129,7 +130,10 @@ public class CamundaService {
             List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
             boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(author));
             if (includeAuthor == isAuthor) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+                Map<String, Object> values = new HashMap<>();
+                for (HistoricVariableInstance variable : variables) {
+                    values.put(variable.getName(), variable.getValue());
+                }
                 citizenRequests.add(new CitizenRequestInfo(values));
             }
         }
@@ -141,7 +145,10 @@ public class CamundaService {
         for (HistoricProcessInstance instance : instances) {
             List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
             if (isRequestAuthorAndElection(variables, userId, electionId)) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
+                Map<String, Object> values = new HashMap<>();
+                for (HistoricVariableInstance variable : variables) {
+                    values.put(variable.getName(), variable.getValue());
+                }
                 return new CitizenRequestInfo(values);
             }
         }

@@ -90,7 +90,7 @@ public class CitizenRequestInfo {
         variables.put("Author", this.author);
         variables.put("FirstName", this.firstName);
         variables.put("LastName", this.lastName);
-        variables.put("DOB", this.dob.toString());
+        variables.put("DOB", this.dobStr);
         variables.put("Address", this.address);
         variables.put("OIB", this.oib);
         variables.put("IDN", this.idn);

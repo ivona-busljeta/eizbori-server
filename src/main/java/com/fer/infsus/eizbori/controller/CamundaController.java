@@ -62,7 +62,7 @@ public class CamundaController {
             fillInUserGroups(userId, model);
             model.addAttribute("title", "Online voting application for " + election.getName());
             model.addAttribute("request", new CitizenRequestInfo());
-            model.addAttribute("isReturned", false);
+            model.addAttribute("passedReview", true);
 
             return "application";
         }
@@ -78,7 +78,7 @@ public class CamundaController {
             fillInUserGroups(userId, model);
             model.addAttribute("title", "Correction of application for " + election.getName());
             model.addAttribute("request", request);
-            model.addAttribute("isReturned", request.getPassedReview());
+            model.addAttribute("passedReview", request.getPassedReview());
 
             return "application";
         }
@@ -174,7 +174,10 @@ public class CamundaController {
     @GetMapping("/{userId}/request-management/assign-reviewer")
     public String assignReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, Model model) {
         if (isHead(userId)) {
-            List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
+            List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream()
+                    .filter(user -> !user.getId().equals(author))
+                    .map(UserInfo::new)
+                    .toList();
 
             fillInUserGroups(userId, model);
             model.addAttribute("author", author);
