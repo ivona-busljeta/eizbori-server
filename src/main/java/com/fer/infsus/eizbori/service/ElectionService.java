@@ -43,7 +43,7 @@ public class ElectionService {
     }
 
     public List<Election> getActiveElections() {
-        return electionRepository.findByStatusNotOrderByEventDateDesc(Status.FINISHED);
+        return electionRepository.findByStatusNotOrderByEventDateAsc(Status.FINISHED);
     }
 
     public Election getElection(long id) {

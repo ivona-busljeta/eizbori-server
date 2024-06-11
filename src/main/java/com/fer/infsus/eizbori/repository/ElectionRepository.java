@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface ElectionRepository extends JpaRepository<Election, Long> {
 
-    List<Election> findByStatusNotOrderByEventDateDesc(@NonNull Status status);
+    List<Election> findByStatusNotOrderByEventDateAsc(@NonNull Status status);
 }

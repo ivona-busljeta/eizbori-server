@@ -1,0 +1,30 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      th:include="layouts/layout :: page(userId=${userId},citizen=${citizen},admin=${admin},head=${head})"
+      lang="en"
+>
+    <head>
+        <title>eIzbori</title>
+    </head>
+    <body>
+        <section th:fragment="content">
+            <div class="container">
+                <h4>Assign reviewer</h4>
+                <form th:object="${assignedReviewer}" method="post"
+                      th:action="@{/__${userId}__/request-management/assign-reviewer/submit(author=${author},electionId=${electionId})}"
+                      class="mt-3"
+                >
+                    <div class="form-group row mb-2">
+                        <label for="reviewer" class="col-sm-2 col-form-label">Reviewer</label>
+                        <div class="col-sm-10">
+                            <select id="reviewer" th:field="*{userId}" class="form-select">
+                                <option th:each="reviewer : ${reviewers}" th:value="${reviewer.userId}" th:text="${reviewer.fullName}">
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary float-end mt-3">Submit</button>
+                </form>
+            </div>
+        </section>
+    </body>
+</html>

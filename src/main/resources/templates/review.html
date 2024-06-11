@@ -1,0 +1,70 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      th:include="layouts/layout :: page(userId=${userId},citizen=${citizen},admin=${admin},head=${head})"
+      lang="en"
+>
+    <head>
+        <title>eIzbori</title>
+    </head>
+    <body>
+        <section th:fragment="content">
+            <div class="container">
+                <h4>Review application for online voting</h4>
+                <div class="form-group row mt-3 mb-2">
+                    <label for="firstName" class="col-sm-2 col-form-label">First Name</label>
+                    <div class="col-sm-10">
+                        <output id="firstName" type="text" th:text="${request.firstName}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+                <div class="form-group row mb-2">
+                    <label for="lastName" class="col-sm-2 col-form-label">Last Name</label>
+                    <div class="col-sm-10">
+                        <output id="lastName" type="text" th:text="${request.lastName}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+                <div class="form-group row mb-2">
+                    <label for="dob" class="col-sm-2 col-form-label">Date of Birth</label>
+                    <div class="col-sm-10">
+                        <output id="dob" type="text" th:text="${#temporals.format(request.dob, 'dd.MM.yyyy.')}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+                <div class="form-group row mb-2">
+                    <label for="address" class="col-sm-2 col-form-label">Address</label>
+                    <div class="col-sm-10">
+                        <output id="address" type="text" th:text="${request.address}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+                <div class="form-group row mb-2">
+                    <label for="oib" class="col-sm-2 col-form-label">OIB</label>
+                    <div class="col-sm-10">
+                        <output id="oib" type="text" th:text="${request.oib}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+                <div class="form-group row mb-2">
+                    <label for="idn" class="col-sm-2 col-form-label">IDN</label>
+                    <div class="col-sm-10">
+                        <output id="idn" type="text" th:text="${request.idn}" class="form-control-plaintext"></output>
+                    </div>
+                </div>
+            </div>
+            <div class="container mt-5">
+                <form th:object="${review}" method="post"
+                      th:action="@{/__${userId}__/requests/review/submit(author=${request.author},electionId=(${request.electionId}))}"
+                >
+                    <div class="row align-items-center">
+                        <div class="form-group col-2">
+                            <div class="form-check">
+                                <input id="passedReview" type="checkbox" value="true" th:field="*{passedReview}" class="form-check-input">
+                                <label for="passedReview" class="form-check-label">Passed Review</label>
+                            </div>
+                        </div>
+                        <div class="form-group col-10">
+                            <label for="comment">Comments</label>
+                            <textarea id="comment" th:field="*{comment}" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary float-end mt-3">Submit</button>
+                </form>
+            </div>
+        </section>
+    </body>
+</html>

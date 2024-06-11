@@ -1,6 +1,5 @@
 package com.fer.infsus.eizbori.service;
 
-import com.fer.infsus.eizbori.model.CitizenRequestDetailedInfo;
 import com.fer.infsus.eizbori.model.CitizenRequestInfo;
 import com.fer.infsus.eizbori.model.RequestReviewInfo;
 import org.camunda.bpm.engine.history.HistoricProcessInstance;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 public class CamundaService {
 
     private final String processKey = "ProcessRequest";
-    private final String message = "TakeRequestMessage";
 
     private final CamundaEngineService camundaEngineService;
 
@@ -36,17 +34,101 @@ public class CamundaService {
         return camundaEngineService.getUsersInGroup(groupId);
     }
 
-    public void sendCitizenRequest(CitizenRequestInfo citizenRequestInfo) {
+    public List<CitizenRequestInfo> getRequestsToCitizen(String userId) {
+        return getRequestsByAuthor(userId, true).stream()
+                .filter(request -> request.getPastDeadline() == null || !request.getPastDeadline())
+                .sorted((r1, r2) -> r2.getDateCreated().compareTo(r1.getDateCreated()))
+                .toList();
+    }
+
+    public List<CitizenRequestInfo> getUnassignedRequestsToAdmin(String userId) {
+        return getRequestsByAuthor(userId, false).stream()
+                .filter(request -> request.getPastDeadline() == null || !request.getPastDeadline())
+                .filter(request -> request.getTimePassed() == null || !request.getTimePassed())
+                .filter(request -> request.getReviewer() == null)
+                .sorted((r1, r2) -> r2.getDateCreated().compareTo(r1.getDateCreated()))
+                .toList();
+    }
+
+    public List<CitizenRequestInfo> getAssignedRequestsToAdmin(String userId) {
+        return getRequestsByAuthor(userId, false).stream()
+                .filter(request -> request.getReviewer() != null && request.getReviewer().equals(userId))
+                .sorted((r1, r2) -> r2.getDateCreated().compareTo(r1.getDateCreated()))
+                .toList();
+    }
+
+    public List<CitizenRequestInfo> getUnassignedRequestsToHead(String userId) {
+        return getRequestsByAuthor(userId, false).stream()
+                .filter(request -> request.getTimePassed() != null && request.getTimePassed())
+                .filter(request -> request.getReviewer() == null)
+                .sorted((r1, r2) -> r2.getDateCreated().compareTo(r1.getDateCreated()))
+                .toList();
+    }
+
+    public List<CitizenRequestInfo> getAssignedRequestsToHead(String userId) {
+        return getRequestsByAuthor(userId, false).stream()
+                .filter(request -> request.getPastDeadline() == null || !request.getPastDeadline())
+                .sorted((r1, r2) -> r2.getDateCreated().compareTo(r1.getDateCreated()))
+                .toList();
+    }
+
+    public CitizenRequestInfo getRequest(String userId, Long electionId) {
+        return getRequestByAuthorAndElection(userId, electionId);
+    }
+
+    public void sendRequest(CitizenRequestInfo citizenRequestInfo) {
         camundaEngineService.startProcessInstance(processKey, citizenRequestInfo.toVariables());
     }
 
-    public List<CitizenRequestInfo> getCitizenRequests(String userId) {
+    public void sendRequestCorrection(String userId, Long electionId, CitizenRequestInfo citizenRequestInfo) {
+        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+        for (Task task : tasks) {
+            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
+            if (variables.get("ElectionId") != null && variables.get("ElectionId") == electionId) {
+                citizenRequestInfo.setDateCreated((String) variables.get("DateCreated"));
+                citizenRequestInfo.setDeadline((String) variables.get("Deadline"));
+                camundaEngineService.completeTask(task.getId(), citizenRequestInfo.toVariables());
+                return;
+            }
+        }
+    }
+
+    public void takeOverRequest(String userId, String requestAuthor, Long requestElectionId) {
+        HistoricProcessInstance instance = getInstanceByAuthorAndElection(requestAuthor, requestElectionId);
+        if (instance != null) {
+            camundaEngineService.sendMessage("TakeRequestMessage", instance.getId(), Map.of("Reviewer", userId));
+            List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+            Task request = getTaskByAuthorAndElection(tasks, requestAuthor, requestElectionId);
+            if (request != null) {
+                camundaEngineService.claimTask(request.getId(), userId);
+            }
+        }
+    }
+
+    public void sendRequestReview(String userId, String requestAuthor, Long requestElectionId, RequestReviewInfo reviewInfo) {
+        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
+        Task task = getTaskByAuthorAndElection(tasks, requestAuthor, requestElectionId);
+        if (task != null) {
+            camundaEngineService.completeTask(task.getId(), reviewInfo.toVariables());
+        }
+    }
+
+    public void assignReviewerToRequest(String userId, String requestAuthor, Long requestElectionId, String reviewer) {
+        List<Task> tasks = camundaEngineService.getUnassignedGroupTasks("head", processKey);
+        Task request = getTaskByAuthorAndElection(tasks, requestAuthor, requestElectionId);
+        if (request != null) {
+            camundaEngineService.claimTask(request.getId(), userId);
+            camundaEngineService.completeTask(request.getId(), Map.of("Reviewer", reviewer));
+        }
+    }
+
+    private List<CitizenRequestInfo> getRequestsByAuthor(String author, boolean includeAuthor) {
         List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
         List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
         for (HistoricProcessInstance instance : instances) {
             List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            if (isAuthor) {
+            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(author));
+            if (includeAuthor == isAuthor) {
                 Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
                 citizenRequests.add(new CitizenRequestInfo(values));
             }
@@ -54,87 +136,11 @@ public class CamundaService {
         return citizenRequests;
     }
 
-    public List<CitizenRequestInfo> getCitizenRequestsToAdmin(String userId) {
-        List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
+    private CitizenRequestInfo getRequestByAuthorAndElection(String userId, Long electionId) {
         List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
         for (HistoricProcessInstance instance : instances) {
             List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            if (!isAuthor) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
-
-                boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
-                boolean isReviewerSet = values.get("Reviewer") != null;
-                if (!isTimePassed && !isReviewerSet) {
-                    citizenRequests.add(new CitizenRequestInfo(values));
-                }
-            }
-        }
-        return citizenRequests;
-    }
-
-    public List<CitizenRequestInfo> getYourAcceptedCitizenRequests(String userId) {
-        List<CitizenRequestInfo> citizenRequests = new ArrayList<>();
-        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
-        for (HistoricProcessInstance instance : instances) {
-            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            if (!isAuthor) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
-
-                boolean youAreReviewer = values.get("Reviewer") != null && userId.equals(values.get("Reviewer"));
-                if (youAreReviewer) {
-                    citizenRequests.add(new CitizenRequestInfo(values));
-                }
-            }
-        }
-        return citizenRequests;
-    }
-
-    public List<CitizenRequestDetailedInfo> getCitizenAssignedRequestsToMaster(String userId) {
-        List<CitizenRequestDetailedInfo> citizenRequests = new ArrayList<>();
-        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
-        for (HistoricProcessInstance instance : instances) {
-            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            if (!isAuthor) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
-
-                boolean isReviewerSet = values.get("Reviewer") != null;
-                if (isReviewerSet) {
-                    citizenRequests.add(new CitizenRequestDetailedInfo(values));
-                }
-            }
-        }
-        return citizenRequests;
-    }
-
-    public List<CitizenRequestDetailedInfo> getUnassignedCitizenRequestsToMaster(String userId) {
-        List<CitizenRequestDetailedInfo> citizenRequests = new ArrayList<>();
-        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
-        for (HistoricProcessInstance instance : instances) {
-            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            if (!isAuthor) {
-                Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
-
-                boolean isTimePassed = values.get("TimePassed") != null && (boolean) values.get("TimePassed");
-                boolean isReviewerSet = values.get("Reviewer") != null;
-                if (isTimePassed && !isReviewerSet) {
-                    citizenRequests.add(new CitizenRequestDetailedInfo(values));
-                }
-            }
-        }
-        return citizenRequests;
-    }
-
-    public CitizenRequestInfo getCitizenRequestForElection(String userId, Long electionId) {
-        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
-        for (HistoricProcessInstance instance : instances) {
-            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
-            boolean isAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(userId));
-            boolean isForElection = variables.stream().anyMatch(variable -> variable.getName().equals("ElectionId") && variable.getValue().equals(electionId));
-            if (isAuthor && isForElection) {
+            if (isRequestAuthorAndElection(variables, userId, electionId)) {
                 Map<String, Object> values = variables.stream().collect(Collectors.toMap(HistoricVariableInstance::getName, HistoricVariableInstance::getValue));
                 return new CitizenRequestInfo(values);
             }
@@ -142,43 +148,36 @@ public class CamundaService {
         return new CitizenRequestInfo();
     }
 
-    public void sendCitizenRequestCorrection(String userId, Long electionId, CitizenRequestInfo citizenRequestInfo) {
-        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
-        for (Task task : tasks) {
-            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
-            if (variables.get("ElectionId") != null && variables.get("ElectionId") == electionId) {
-                citizenRequestInfo.setDateCreated(variables.get("DateCreated").toString());
-                citizenRequestInfo.setDeadline(variables.get("Deadline").toString());
-                camundaEngineService.completeTask(task.getId(), citizenRequestInfo.toVariables());
-                return;
+    private HistoricProcessInstance getInstanceByAuthorAndElection(String userId, Long electionId) {
+        List<HistoricProcessInstance> instances = camundaEngineService.getProcessInstances(processKey);
+        for (HistoricProcessInstance instance : instances) {
+            List<HistoricVariableInstance> variables = camundaEngineService.getProcessInstanceVariables(instance.getId());
+            if (isRequestAuthorAndElection(variables, userId, electionId)) {
+                return instance;
             }
         }
+        return null;
     }
 
-    public void assignReviewerToRequest(String userId, String requestAuthor, Long requestElectionId, String reviewer) {
-        List<Task> tasks = camundaEngineService.getUnassignedGroupTasks("head", processKey);
+    private Task getTaskByAuthorAndElection(List<Task> tasks, String requestAuthor, Long requestElectionId) {
         for (Task task : tasks) {
             Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
-            boolean isRequestedAuthor = variables.get("Author") != null && requestAuthor.equals(variables.get("Author"));
-            boolean isRequestedElection = variables.get("ElectionId") != null && variables.get("ElectionId") == requestElectionId;
-            if (isRequestedAuthor && isRequestedElection) {
-                camundaEngineService.claimTask(task.getId(), userId);
-                camundaEngineService.completeTask(task.getId(), Map.of("Reviewer", reviewer));
-                return;
+            if (isRequestAuthorAndElection(variables, requestAuthor, requestElectionId)) {
+                return task;
             }
         }
+        return null;
     }
 
-    public void sendRequestReview(String userId, String requestAuthor, Long requestElectionId, RequestReviewInfo reviewInfo) {
-        List<Task> tasks = camundaEngineService.getUserTasks(userId, processKey);
-        for (Task task : tasks) {
-            Map<String, Object> variables = camundaEngineService.getTaskVariables(task.getId());
-            boolean isRequestedAuthor = variables.get("Author") != null && requestAuthor.equals(variables.get("Author"));
-            boolean isRequestedElection = variables.get("ElectionId") != null && variables.get("ElectionId") == requestElectionId;
-            if (isRequestedAuthor && isRequestedElection) {
-                camundaEngineService.completeTask(task.getId(), reviewInfo.toVariables());
-                return;
-            }
-        }
+    private boolean isRequestAuthorAndElection(List<HistoricVariableInstance> variables, String requestAuthor, Long requestElectionId) {
+        boolean isRequestAuthor = variables.stream().anyMatch(variable -> variable.getName().equals("Author") && variable.getValue().equals(requestAuthor));
+        boolean isRequestElection = variables.stream().anyMatch(variable -> variable.getName().equals("ElectionId") && variable.getValue().equals(requestElectionId));
+        return isRequestAuthor && isRequestElection;
+    }
+
+    private boolean isRequestAuthorAndElection(Map<String, Object> variables, String requestAuthor, Long requestElectionId) {
+        boolean isRequestAuthor = variables.get("Author") != null && requestAuthor.equals(variables.get("Author"));
+        boolean isRequestElection = variables.get("ElectionId") != null && requestElectionId.equals(variables.get("ElectionId"));
+        return isRequestAuthor && isRequestElection;
     }
 }

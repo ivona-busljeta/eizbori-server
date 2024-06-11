@@ -1,7 +1,8 @@
 INSERT INTO election_type(code, name)
 VALUES
     ('PRH', 'Predsjednički izbori'),
-    ('LOKGN', 'Lokalni izbori - Gradonačelnik');
+    ('LOKGN', 'Lokalni izbori - Gradonačelnik'),
+    ('LOKGS', 'Lokalni izbori - Gradska skupština');
 
 INSERT INTO election(type, year, event_date, deadline, status)
 SELECT id, 2019, '2019-12-06', '2019-11-20', 'Završen'
@@ -20,6 +21,11 @@ WHERE code = 'PRH';
 
 INSERT INTO election(type, year, event_date, deadline, status)
 SELECT id, 2024, '2024-06-14', '2024-05-28', 'U tijeku'
+FROM election_type
+WHERE code = 'LOKGN';
+
+INSERT INTO election(type, year, event_date, deadline, status)
+SELECT id, 2024, '2024-06-21', '2024-06-04', 'U tijeku'
 FROM election_type
 WHERE code = 'LOKGN';
 

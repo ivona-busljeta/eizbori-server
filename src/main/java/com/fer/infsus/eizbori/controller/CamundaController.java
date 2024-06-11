@@ -32,9 +32,9 @@ public class CamundaController {
 
     @GetMapping("/{userId}/elections")
     public String elections(@PathVariable String userId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (isCitizen(userId)) {
             List<ElectionInfo> elections = electionService.getActiveElections().stream().map(ElectionInfo::new).toList();
-            List<CitizenRequestInfo> requests = camundaService.getCitizenRequests(userId);
+            List<CitizenRequestInfo> requests = camundaService.getRequestsToCitizen(userId);
             requests.forEach(request -> {
                 Optional<ElectionInfo> electionInfo = elections.stream()
                         .filter(election -> Objects.equals(request.getElectionId(), election.getId()))
@@ -45,15 +45,9 @@ public class CamundaController {
                 }
             });
 
-            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
-            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
-            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
-
+            fillInUserGroups(userId, model);
             model.addAttribute("elections", elections);
             model.addAttribute("requests", requests);
-            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
-            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
-            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
 
             return "elections";
         }
@@ -62,45 +56,53 @@ public class CamundaController {
 
     @GetMapping("/{userId}/elections/{electionId}/application")
     public String electionApplication(@PathVariable String userId, @PathVariable Long electionId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
+        if (isCitizen(userId)) {
             ElectionInfo election = new ElectionInfo(electionService.getElection(electionId));
-            model.addAttribute("electionName", election.getName());
-            model.addAttribute("formData", new CitizenRequestInfo());
 
-            return "applyForm";
+            fillInUserGroups(userId, model);
+            model.addAttribute("title", "Online voting application for " + election.getName());
+            model.addAttribute("request", new CitizenRequestInfo());
+            model.addAttribute("isReturned", false);
+
+            return "application";
         }
         return "403";
     }
 
     @GetMapping("/{userId}/elections/{electionId}/application/edit")
     public String editApplication(@PathVariable String userId, @PathVariable Long electionId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
-            CitizenRequestInfo request = camundaService.getCitizenRequestForElection(userId, electionId);
-            model.addAttribute("electionName", request.getElectionName());
-            model.addAttribute("formData", request);
+        if (isCitizen(userId)) {
+            ElectionInfo election = new ElectionInfo(electionService.getElection(electionId));
+            CitizenRequestInfo request = camundaService.getRequest(userId, electionId);
 
-            return "applyForm";
+            fillInUserGroups(userId, model);
+            model.addAttribute("title", "Correction of application for " + election.getName());
+            model.addAttribute("request", request);
+            model.addAttribute("isReturned", request.getPassedReview());
+
+            return "application";
         }
         return "403";
     }
 
     @PostMapping("/{userId}/elections/{electionId}/application/submit")
     public String submitApplication(@PathVariable String userId, @PathVariable Long electionId, CitizenRequestInfo citizenRequestInfo) {
-        if (camundaService.isUserInGroup(userId, GROUP_CITIZEN)) {
-            CitizenRequestInfo request = camundaService.getCitizenRequestForElection(userId, electionId);
+        if (isCitizen(userId)) {
+            CitizenRequestInfo request = camundaService.getRequest(userId, electionId);
             if (request.isEmpty()) {
+                ElectionInfo election = new ElectionInfo(electionService.getElection(electionId));
                 citizenRequestInfo.setElectionId(electionId);
                 citizenRequestInfo.setAuthor(userId);
                 citizenRequestInfo.setDateCreated(LocalDate.now().toString());
-                citizenRequestInfo.setDeadline(LocalDate.now().toString());
+                citizenRequestInfo.setDeadline(election.getDeadline().toString());
                 citizenRequestInfo.setStatus("Created");
 
-                camundaService.sendCitizenRequest(citizenRequestInfo);
+                camundaService.sendRequest(citizenRequestInfo);
                 return "redirect:/{userId}/elections";
 
             } else if (request.getStatus().equals("Returned")) {
                 citizenRequestInfo.setAuthor(userId);
-                camundaService.sendCitizenRequestCorrection(userId, electionId, citizenRequestInfo);
+                camundaService.sendRequestCorrection(userId, electionId, citizenRequestInfo);
                 return "redirect:/{userId}/elections";
             }
         }
@@ -109,88 +111,106 @@ public class CamundaController {
 
     @GetMapping("/{userId}/requests")
     public String requests(@PathVariable String userId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
-            List<CitizenRequestInfo> requests = camundaService.getCitizenRequestsToAdmin(userId);
-            List<CitizenRequestInfo> acceptedRequests = camundaService.getYourAcceptedCitizenRequests(userId);
+        if (isAdmin(userId)) {
+            List<CitizenRequestInfo> unassigned = camundaService.getUnassignedRequestsToAdmin(userId);
+            List<CitizenRequestInfo> accepted = camundaService.getAssignedRequestsToAdmin(userId);
 
-            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
-            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
-            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
-
-            model.addAttribute("requests", requests);
-            model.addAttribute("acceptedRequests", acceptedRequests);
-            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
-            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
-            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
+            fillInUserGroups(userId, model);
+            model.addAttribute("unassigned", unassigned);
+            model.addAttribute("accepted", accepted);
 
             return "requests";
         }
         return "403";
     }
 
+    @PostMapping("/{userId}/requests/take-over")
+    public String takeOverRequest(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId) {
+        if (isAdmin(userId)) {
+            camundaService.takeOverRequest(userId, author, electionId);
+            return "redirect:/{userId}/requests";
+        }
+        return "403";
+    }
+
     @GetMapping("/{userId}/requests/review")
     public String requestReview(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
-            CitizenRequestInfo request = camundaService.getCitizenRequestForElection(author, electionId);
+        if (isAdmin(userId)) {
+            CitizenRequestInfo request = camundaService.getRequest(author, electionId);
+
+            fillInUserGroups(userId, model);
             model.addAttribute("request", request);
             model.addAttribute("review", new RequestReviewInfo());
-            return "reviewRequest";
+
+            return "review";
         }
         return "403";
     }
 
     @PostMapping("/{userId}/requests/review/submit")
     public String submitReview(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, RequestReviewInfo requestReviewInfo) {
-        if (camundaService.isUserInGroup(userId, GROUP_ADMIN)) {
+        if (isAdmin(userId)) {
             camundaService.sendRequestReview(userId, author, electionId, requestReviewInfo);
             return "redirect:/{userId}/requests";
         }
         return "403";
     }
 
-    @GetMapping("/{userId}/request-control")
-    public String master(@PathVariable String userId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
-            List<CitizenRequestDetailedInfo> unassigned = camundaService.getUnassignedCitizenRequestsToMaster(userId);
-            List<CitizenRequestDetailedInfo> assigned = camundaService.getCitizenAssignedRequestsToMaster(userId);
+    @GetMapping("/{userId}/request-management")
+    public String requestManagement(@PathVariable String userId, Model model) {
+        if (isHead(userId)) {
+            List<CitizenRequestInfo> unassigned = camundaService.getUnassignedRequestsToHead(userId);
+            List<CitizenRequestInfo> assigned = camundaService.getAssignedRequestsToHead(userId);
 
-            boolean isUserInCitizenGroup = camundaService.isUserInGroup(userId, GROUP_CITIZEN);
-            boolean isUserInAdminGroup = camundaService.isUserInGroup(userId, GROUP_ADMIN);
-            boolean isUserInMasterGroup = camundaService.isUserInGroup(userId, GROUP_HEAD);
-
+            fillInUserGroups(userId, model);
             model.addAttribute("unassigned", unassigned);
             model.addAttribute("assigned", assigned);
-            model.addAttribute("isUserInCitizenGroup", isUserInCitizenGroup);
-            model.addAttribute("isUserInAdminGroup", isUserInAdminGroup);
-            model.addAttribute("isUserInMasterGroup", isUserInMasterGroup);
 
-            return "master";
+            return "management";
         }
         return "403";
     }
 
-    @GetMapping("/{userId}/request-control/assign-reviewer")
+    @GetMapping("/{userId}/request-management/assign-reviewer")
     public String assignReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, Model model) {
-        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
+        if (isHead(userId)) {
             List<UserInfo> reviewers = camundaService.getUsersInGroup(GROUP_ADMIN).stream().map(UserInfo::new).toList();
 
+            fillInUserGroups(userId, model);
             model.addAttribute("author", author);
             model.addAttribute("electionId", electionId);
             model.addAttribute("reviewers", reviewers);
             model.addAttribute("assignedReviewer", new UserInfo());
 
-            return "assignReviewer";
+            return "assignment";
         }
         return "403";
     }
 
-    @PostMapping("/{userId}/request-control/assign-reviewer/submit")
+    @PostMapping("/{userId}/request-management/assign-reviewer/submit")
     public String submitAssignedReviewer(@PathVariable String userId, @RequestParam String author, @RequestParam Long electionId, UserInfo userInfo) {
-        if (camundaService.isUserInGroup(userId, GROUP_HEAD)) {
+        if (isHead(userId)) {
             camundaService.assignReviewerToRequest(userId, author, electionId, userInfo.getUserId());
-            return "redirect:/{userId}/request-control";
+            return "redirect:/{userId}/request-management";
         }
         return "403";
     }
+    
+    private boolean isCitizen(String userId) {
+        return camundaService.isUserInGroup(userId, GROUP_CITIZEN);
+    }
+    
+    private boolean isAdmin(String userId) {
+        return camundaService.isUserInGroup(userId, GROUP_ADMIN);
+    }
+    
+    private boolean isHead(String userId) {
+        return camundaService.isUserInGroup(userId, GROUP_HEAD);
+    }
 
+    private void fillInUserGroups(String userId, Model model) {
+        model.addAttribute(GROUP_CITIZEN, isCitizen(userId));
+        model.addAttribute(GROUP_ADMIN, isAdmin(userId));
+        model.addAttribute(GROUP_HEAD, isHead(userId));
+    }
 }
