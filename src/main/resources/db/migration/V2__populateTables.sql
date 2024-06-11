@@ -27,7 +27,7 @@ WHERE code = 'LOKGN';
 INSERT INTO election(type, year, event_date, deadline, status)
 SELECT id, 2024, '2024-06-21', '2024-06-04', 'U tijeku'
 FROM election_type
-WHERE code = 'LOKGN';
+WHERE code = 'LOKGS';
 
 INSERT INTO person(first_name, last_name, dob, address, pid, nationality, sex)
 VALUES
